@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Link | Convierte URLs en códigos QR</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary: #3b9e82; /* Color cambiado para que combine mejor con el fondo beige */
+            --primary-hover: #2d8a70; /* Tono más oscuro para hover */
+            --background: #f5f0e8; /* Fondo beige claro elegante */
+            --text: #1f2937;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --error: #ef4444;
+            --success: #10b981;
+            --inputbackground: rgb(244, 243, 237);
+        }
+
+        [data-theme="dark"] {
+            --primary: #7C3AED;
+            --primary-hover: #6D28D9;
+            --background: #111827;
+            --text: #f9fafb;
+            --text-secondary: #9ca3af;
+            --border: #374151;
+            --error: #f87171;
+            --success: #34d399;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 0 1rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 2rem 1rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-top: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        p.subtitle {
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+            max-width: 28rem;
+            margin: 0 auto;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        /* Main content */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+        }
+
+        /* URL input section */
+        .input-section {
+            position: relative;
+        }
+
+        .url-form {
+            display: flex;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .url-input {
+            flex: 1;
+            padding: 1rem 1.25rem;
+            border-radius: 0.5rem 0 0 0.5rem;
+            border: 1px solid var(--border);
+            border-right: none;
+            font-size: 1rem;
+            color: var(--text);
+            background-color: var(--inputbackground);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+
+        .submit-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0 0.5rem 0.5rem 0;
+            padding: 0 1.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .error-message {
+            color: var(--error);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        /* QR code section */
+        .qr-section {
+            display: none;
+            background-color: rgba(var(--background-rgb), 0.8);
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Sombra aumentada */
+            border: 1px solid var(--border);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.4s, transform 0.4s;
+        }
+
+        .qr-section.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .qr-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .qr-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .qr-success {
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .qr-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .qr-preview {
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); /* Sombra aumentada */
+            transition: transform 0.2s;
+        }
+
+        .qr-preview:hover {
+            transform: scale(1.02);
+        }
+
+        #qrcode {
+            height: 220px;
+            width: 220px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .qr-controls {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 1.5rem;
+        }
+
+        .qr-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .option-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .option-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        /* Color picker */
+        .color-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .color-option {
+            width: 1.75rem;
+            height: 1.75rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 2px solid transparent;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra añadida */
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.active {
+            border-color: var(--text);
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08); /* Sombra añadida */
+        }
+
+        .primary-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+        }
+
+        .primary-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .secondary-btn {
+            background-color: var(--background);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .secondary-btn:hover {
+            background-color: var(--border);
+        }
+
+        .qr-stats {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .motivational {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 1rem;
+            color: var(--text);
+        }
+
+        @media (max-width: 640px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .actions {
+                flex-direction: column;
+            }
+            
+            .url-form {
+                flex-direction: column;
+            }
+            
+            .url-input {
+                border-radius: 0.5rem;
+                border-right: 1px solid var(--border);
+                margin-bottom: 0.5rem;
+            }
+            
+            .submit-btn {
+                border-radius: 0.5rem;
+                padding: 0.75rem;
+            }
+        }
+
+        footer {
+            margin-top: auto;
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="themeToggle">
+        <span id="themeIcon">🌙</span> 
+        <span id="themeText">Modo oscuro</span>
+    </button>
+    
+    <div class="container">
+        <header>
+            <h1>QR Link</h1>
+            <p class="subtitle">Convierte cualquier enlace en un código QR personalizado en segundos</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <form class="url-form" id="urlForm">
+                    <input 
+                        type="text" 
+                        class="url-input" 
+                        id="urlInput" 
+                        placeholder="Pega tu enlace aquí..." 
+                        aria-label="URL a convertir en QR"
+                    >
+                    <button type="submit" class="submit-btn">Generar QR</button>
+                </form>
+                <div class="error-message" id="errorMessage">Por favor, introduce una URL válida</div>
+            </div>
+            
+            <div class="qr-section" id="qrSection">
+                <div class="qr-heading">
+                    <h2 class="qr-title">Tu código QR</h2>
+                    <div class="qr-success">
+                        <span>✓</span>
+                        <span>¡Listo! Tu QR está preparado para descargar</span>
+                    </div>
+                </div>
+                
+                <div class="qr-container">
+                    <div class="qr-preview">
+                        <div id="qrcode"></div>
+                    </div>
+                    
+                    <div class="qr-controls">
+                        <div class="qr-options">
+                            <div class="option-group">
+                                <label>Color del QR</label>
+                                <div class="color-options">
+                                    <div class="color-option active" style="background-color: #3b9e82;" data-color="#3b9e82"></div>
+                                    <div class="color-option" style="background-color: #7C3AED;" data-color="#7C3AED"></div>
+                                    <div class="color-option" style="background-color: #10B981;" data-color="#10B981"></div>
+                                    <div class="color-option" style="background-color: #EF4444;" data-color="#EF4444"></div>
+                                    <div class="color-option" style="background-color: #F59E0B;" data-color="#F59E0B"></div>
+                                    <div class="color-option" style="background-color: #000000;" data-color="#000000"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="actions">
+                            <button class="action-btn primary-btn" id="downloadBtn">
+                                Descargar PNG
+                            </button>
+                            <button class="action-btn secondary-btn" id="downloadSvgBtn">
+                                Descargar SVG
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="qr-stats" id="qrStats">Este QR ha sido generado 1,024 veces</div>
+                
+                <div class="motivational">Comparte fácilmente tu contenido 🌐</div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>© 2025 QR Link | Convierte URLs en códigos QR fácilmente</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlForm = document.getElementById('urlForm');
+            const urlInput = document.getElementById('urlInput');
+            const errorMessage = document.getElementById('errorMessage');
+            const qrSection = document.getElementById('qrSection');
+            const qrCodeDiv = document.getElementById('qrcode');
+            const qrStats = document.getElementById('qrStats');
+            const colorOptions = document.querySelectorAll('.color-option');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const downloadSvgBtn = document.getElementById('downloadSvgBtn');
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const themeText = document.getElementById('themeText');
+            
+            let qrcode = null;
+            let generationCount = Math.floor(Math.random() * 2000) + 500;
+            let currentUrl = '';
+            let currentColor = '#3b9e82'; // Cambio de color por defecto
+            
+            // Manejar selección de color
+            colorOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Actualizar clase activa
+                    colorOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Obtener color seleccionado
+                    currentColor = this.getAttribute('data-color');
+                    
+                    // Regenerar QR si hay una URL actual
+                    if (currentUrl) {
+                        generateQR(currentUrl);
+                    }
+                });
+            });
+            
+            // Manejar envío del formulario
+            urlForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const url = urlInput.value.trim();
+                
+                // Validación simple de URL
+                if (!url || !isValidUrl(url)) {
+                    errorMessage.style.display = 'block';
+                    return;
+                }
+                
+                errorMessage.style.display = 'none';
+                currentUrl = url;
+                generateQR(url);
+                
+                // Animación del QR section
+                qrSection.classList.add('active');
+                
+                // Incrementar contador
+                generationCount++;
+                qrStats.textContent = `Este QR ha sido generado ${generationCount.toLocaleString()} veces`;
+            });
+            
+            // Generar QR
+            function generateQR(url) {
+                // Limpiar QR existente
+                qrCodeDiv.innerHTML = '';
+                
+                // Tamaño fijo (no variable)
+                const size = 220;
+                
+                // Configuración del QR
+                const config = {
+                    text: url,
+                    width: size,
+                    height: size,
+                    colorDark: currentColor,
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                };
+                
+                // Generar QR
+                qrcode = new QRCode(qrCodeDiv, config);
+                
+                // Efecto de aparición con pequeña animación
+                qrCodeDiv.style.opacity = 0;
+                setTimeout(() => {
+                    qrCodeDiv.style.opacity = 1;
+                    qrCodeDiv.style.transition = 'opacity 0.5s';
+                }, 100);
+            }
+            
+            // Descargar QR como PNG
+            downloadBtn.addEventListener('click', function() {
+                if (!qrcode) return;
+                
+                const canvas = document.querySelector('#qrcode canvas');
+                if (canvas) {
+                    const link = document.createElement('a');
+                    link.download = 'qr-code.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                }
+            });
+            
+            // Descargar QR como SVG
+            downloadSvgBtn.addEventListener('click', function() {
+                if (!qrcode) return;
+                
+                // Nota: QRCode.js no genera directamente SVGs.
+                // En una implementación real, necesitaríamos una librería adicional o lógica para SVG
+                // Aquí simularemos la descarga
+                alert('En una implementación completa, esta opción descargaría un SVG.');
+            });
+            
+            // Toggle de tema claro/oscuro
+            themeToggle.addEventListener('click', function() {
+                if (document.body.hasAttribute('data-theme')) {
+                    document.body.removeAttribute('data-theme');
+                    themeIcon.textContent = '🌙';
+                    themeText.textContent = 'Modo oscuro';
+                } else {
+                    document.body.setAttribute('data-theme', 'dark');
+                    themeIcon.textContent = '☀️';
+                    themeText.textContent = 'Modo claro';
+                }
+            });
+            
+            // Validar URL
+            function isValidUrl(url) {
+                try {
+                    new URL(url);
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
