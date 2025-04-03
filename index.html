@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    
     <meta charset="UTF-8">
+    <link rel="icon" href="assets/favicon.png" type="image/png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Link | Convierte URLs en códigos QR</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -22,7 +24,8 @@
             --primary: #7C3AED;
             --primary-hover: #6D28D9;
             --background: #111827;
-            --text: #f9fafb;
+            --text1: #000000;
+            --text: #ffffff;
             --text-secondary: #9ca3af;
             --border: #374151;
             --error: #f87171;
@@ -112,7 +115,7 @@
             border: 1px solid var(--border);
             border-right: none;
             font-size: 1rem;
-            color: black;
+            color: var(--text1);
             background-color: var(--inputbackground);
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         }
@@ -402,7 +405,7 @@
                                 <div class="color-options">
                                     <div class="color-option active" style="background-color: #3b9e82;" data-color="#3b9e82"></div>
                                     <div class="color-option" style="background-color: #7C3AED;" data-color="#7C3AED"></div>
-                                    <div class="color-option" style="background-color: #10B981;" data-color="#10B981"></div>
+                                    <div class="color-option" style="background-color: #0998b5;" data-color="#0998b5"></div>
                                     <div class="color-option" style="background-color: #EF4444;" data-color="#EF4444"></div>
                                     <div class="color-option" style="background-color: #F59E0B;" data-color="#F59E0B"></div>
                                     <div class="color-option" style="background-color: #000000;" data-color="#000000"></div>
